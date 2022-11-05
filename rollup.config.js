@@ -1,4 +1,4 @@
-import typescript from "@rollup/plugin-typescript"
+import typescript from "@rollup/plugin-typescript";
 
 export default {
   input: "./src/index.ts",
@@ -10,9 +10,7 @@ export default {
     {
       file: "./dist/index.mjs",
       format: "esm",
-    }
+    },
   ],
-  plugins: [
-    typescript({ tsconfig: "./tsconfig.json"}),
-  ],
+  plugins: [typescript({ tsconfig: "./tsconfig.json" })],
 };

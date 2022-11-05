@@ -3,8 +3,11 @@
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "build": "cross-env ENV=production rollup -c "
+    "build": "cross-env ENV=production rollup -c --bundleConfigAsCjs"
   },
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
   "repository": {
     "type": "git",
     "url": "https://github.com/yysanf/vite-plugin-i18n-helper"
