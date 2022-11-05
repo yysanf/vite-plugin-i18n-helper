@@ -231,12 +231,12 @@ function generatorResultHtml(
       Array.from(unCompleted)
     );
   } else {
-    i18nMap.forEach((val, k) => {
+    i18nMap.forEach((val, url) => {
       const completed: string[] = [],
         unCompleted: string[] = [];
       val.forEach((k) => {
         !dict || dict[k] ? completed.push(k) : unCompleted.push(k);
-        content += generator(k, completed, unCompleted);
+        content += generator(url, completed, unCompleted);
       });
     });
   }
