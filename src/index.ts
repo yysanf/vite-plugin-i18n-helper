@@ -236,8 +236,8 @@ function generatorResultHtml(
         unCompleted: string[] = [];
       val.forEach((k) => {
         !dict || dict[k] ? completed.push(k) : unCompleted.push(k);
-        content += generator(url, completed, unCompleted);
       });
+      content += generator(url, completed, unCompleted);
     });
   }
   return `<!DOCTYPE html>
