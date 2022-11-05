@@ -5,9 +5,9 @@
 
 ## 安装
 
-**node version:** >=12.0.0
+**node version:** >=16.0.0
 
-**vite version:** >=2.0.0
+**vite version:** >=3.0.0
 
 ```bash
 npm i vite-plugin-i18n-helper -D
