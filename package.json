@@ -1,10 +1,18 @@
 {
-  "name": "vite-plugin-iconfont-svg",
+  "name": "vite-plugin-i18n-helper",
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
     "build": "cross-env ENV=production rollup -c "
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yysanf/vite-plugin-i18n-helper"
+  },
+  "bugs": {
+    "url": "https://github.com/yysanf/vite-plugin-i18n-helper/issues"
+  },
+  "homepage": "https://github.com/yysanf/vite-plugin-i18n-helper/tree/master/#readme",
   "devDependencies": {
     "@rollup/plugin-typescript": "^9.0.2",
     "@types/node": "^18.11.8",

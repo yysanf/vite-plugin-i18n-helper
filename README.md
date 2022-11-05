@@ -98,7 +98,7 @@ const name6 = `    ${i18nHepler("123",null,"一二三")}   `;
 | raw   | `boolean` | - | 否 | 是否保留 dictJson 匹配前的 原始值 (是 将作为customI18n 第三个参数传入) |
 | output   | `boolean` | - | 否 | 是否输出字符串处理的结果  |
 
-### 辅助功功能
+### 辅助功能
 - 查看替换字符串
   *  ip + 端口 + '/virtual:i18n-helper/result' (例如 http://127.0.0.1:5173/virtual:i18n-helper/result)
   * 绿色已完成替换   橙色 未完成
