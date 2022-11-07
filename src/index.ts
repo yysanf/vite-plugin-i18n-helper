@@ -92,12 +92,13 @@ export default function (options: Options): Plugin {
             (node as any).callee.type == "MemberExpression" &&
             (node as any).callee.object.type == "Identifier" &&
             (node as any).callee.object.name == "console";
-          const isVueComment =
+          const isIgnoreCall =
             node.type == "CallExpression" &&
             (node as any).callee.type == "Identifier" &&
-            (node as any).callee.name == "_createCommentVNode";
-          // 忽略console 和vue创建注释节点调用
-          if (isConsole || isVueComment) {
+            ((node as any).callee.name == options.customI18n ||
+              (node as any).callee.name == "_createCommentVNode");
+          // 忽略console 和 一些调用方法
+          if (isConsole || isIgnoreCall) {
             this.skip();
           } else if (node.type == "Literal") {
             const { value, start, end } = node as any;

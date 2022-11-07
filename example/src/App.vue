@@ -7,6 +7,7 @@ const name4 = "1" + "2" + "三";
 const name5 = "i18n!:一二三";
 const name6 = "    一二三   ";
 const text = [name1, name2, name3, name4, name5, name6];
+i18nHepler("一二三")
 </script>
 
 <template>
