@@ -22,7 +22,7 @@ const RESULT_ID = "virtual:i18n-helper/result";
 const OUTFILE = "_i18n_helper_result.html";
 
 function isCN(code: string) {
-  return /[\u{4E00}-\u{9FFF}]/gmu.test(code);
+  return /[\u4E00-\u9FFF]/gmu.test(code);
 }
 
 export default function (options: Options): Plugin {
@@ -99,10 +99,7 @@ export default function (options: Options): Plugin {
           // 忽略console 和vue创建注释节点调用
           if (isConsole || isVueComment) {
             this.skip();
-          }
-        },
-        leave(node) {
-          if (node.type == "Literal") {
+          } else if (node.type == "Literal") {
             const { value, start, end } = node as any;
             if (typeof value === "string" && isCN(value)) {
               overwrite(start, end, value, []);

@@ -15,7 +15,9 @@ export class JsonSubject {
         this.read(jsonPath);
       }, 1000);
     };
-    fs.watch(jsonPath, handler);
+    if (fs.existsSync(jsonPath)) {
+      fs.watch(jsonPath, handler);
+    }
   }
   read(jsonPath: string) {
     let data: Dict = {};
