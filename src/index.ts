@@ -100,7 +100,10 @@ export default function (options: Options): Plugin {
           // 忽略console 和 一些调用方法
           if (isConsole || isIgnoreCall) {
             this.skip();
-          } else if (node.type == "Literal") {
+          }
+        },
+        leave(node) {
+          if (node.type == "Literal") {
             const { value, start, end } = node as any;
             if (typeof value === "string" && isCN(value)) {
               overwrite(start, end, value, []);
