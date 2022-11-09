@@ -9,14 +9,14 @@ export default defineConfig({
     typescript({ tsconfig: "../tsconfig.json" }),
     vue(),
     i18nHelperPlugin({
-      includes: ["src/*"],
+      includes: ["src/**"],
       exclude: ["node_modules/*", "src/i18n.js"],
       customI18n: "i18nHepler",
       customI18nUrl: "/src/i18n",
       dictJson: path.resolve(__dirname, "./src/dict.json"),
       ignoreMark: "i18n!:",
       raw: true,
-      output: true
+      output: false
     }),
   ],
 });

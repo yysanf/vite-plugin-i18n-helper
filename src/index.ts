@@ -1,6 +1,6 @@
 import type { Plugin } from "vite";
 import fs from "node:fs";
-import path from "node:path";
+import { resolve } from "node:path";
 import { createFilter } from "vite";
 import MagicString from "magic-string";
 import { walk } from "estree-walker";
@@ -13,6 +13,8 @@ interface Options {
   includes?: Array<string | RegExp> | string | RegExp;
   exclude?: Array<string | RegExp> | string | RegExp;
   ignoreMark?: string;
+  ignorePrefix?: RegExp;
+  ignoreSuffix?: RegExp;
   raw?: boolean;
   output?: boolean;
 }
@@ -33,6 +35,8 @@ export default function (options: Options): Plugin {
   const hasDict = !!options.dictJson;
   const ignoreMark =
     typeof options.ignoreMark === "string" ? options.ignoreMark : "i18n!:";
+  const ignorePrefix = options.ignorePrefix || /^\s+/;
+  const ignoreSuffix = options.ignoreSuffix || /\s+$/;
   const filter = createFilter(options.includes, options.exclude);
   sub.add(ob);
   return {
@@ -47,9 +51,9 @@ export default function (options: Options): Plugin {
         let prefix = str,
           suffix = "",
           fnStr = "";
-        suffix = str = str.replace(/^\s+/, "");
+        suffix = str = str.replace(ignorePrefix, "");
         prefix = prefix.replace(str, "");
-        str = str.replace(/\s+$/, "");
+        str = str.replace(ignoreSuffix, "");
         suffix = suffix.replace(str, "");
         result.add(str);
         const code = hasDict ? ob.data[str] : str;
@@ -146,16 +150,23 @@ export default function (options: Options): Plugin {
         code: magicString.toString(),
       };
     },
-    buildStart() {
-      hasDict && sub.read(options.dictJson as string);
-    },
-    outputOptions(opt) {
-      outDir = opt.dir || "";
+    configResolved(config) {
+      outDir = config.build.outDir || "";
+      const isBuild = config.command === "build";
+      if (hasDict) {
+        if (isBuild) {
+          // 读取文件配置
+          sub.read(options.dictJson as string);
+        } else {
+          // 开启文件监控
+          sub.startWatch(options.dictJson as string);
+        }
+      }
     },
     closeBundle() {
       try {
         if (options.output && outDir) {
-          const file = path.resolve(outDir, OUTFILE);
+          const file = resolve(outDir, OUTFILE);
           fs.writeFileSync(
             file,
             generatorResultHtml(i18nMap, hasDict ? ob.data : void 0, true)
@@ -167,10 +178,6 @@ export default function (options: Options): Plugin {
       }
     },
     configureServer({ middlewares }) {
-      // 开启文件监控
-      if (hasDict) {
-        sub.startWatch(options.dictJson as string);
-      }
       // 添加中间件展示结果页
       middlewares.use(async (req, res, next) => {
         if (req.url && req.url.includes(RESULT_ID)) {

@@ -8,15 +8,35 @@ export class JsonSubject {
     this.Observers = [];
   }
   startWatch(jsonPath: string) {
-    let timer;
-    const handler = () => {
+    let timer, watcher;
+    const pollying = () => {
+      if (watcher) return;
       clearTimeout(timer);
       timer = setTimeout(() => {
-        this.read(jsonPath);
-      }, 1000);
+        this.startWatch(jsonPath);
+      }, 3000);
     };
-    if (fs.existsSync(jsonPath)) {
-      fs.watch(jsonPath, handler);
+    try {
+      const handler = () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          this.read(jsonPath);
+        }, 1000);
+      };
+      if (fs.existsSync(jsonPath)) {
+        watcher = fs.watch(jsonPath, handler);
+        watcher.on("error", () => {
+          watcher.close();
+          watcher = void 0;
+          this.notify({});
+          pollying();
+        });
+        this.read(jsonPath);
+      } else {
+        pollying();
+      }
+    } catch (error) {
+      pollying();
     }
   }
   read(jsonPath: string) {
@@ -35,7 +55,6 @@ export class JsonSubject {
     //添加
     this.Observers.push(observer);
   }
-
   remove(observer) {
     //移除
     this.Observers.filter((item) => item === observer);
