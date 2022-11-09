@@ -27,6 +27,11 @@ function isCN(code: string) {
   return /[\u4E00-\u9FFF]/gmu.test(code);
 }
 
+function splitByIgnoreReg(str: string, reg: RegExp) {
+  const match = str.match(reg);
+  return [str.replace(reg, ""), match ? match[0] : ""];
+}
+
 export default function (options: Options): Plugin {
   let outDir = "";
   const i18nMap: Map<string, compilerResult> = new Map(); // 记录解析结果
@@ -47,14 +52,13 @@ export default function (options: Options): Plugin {
       const magicString = new MagicString(code);
       let write = false;
       const result: compilerResult = new Set(); // 存储当前解析内容
-      function compiler(str: string, args: string[]) {
-        let prefix = str,
-          suffix = "",
-          fnStr = "";
-        suffix = str = str.replace(ignorePrefix, "");
-        prefix = prefix.replace(str, "");
-        str = str.replace(ignoreSuffix, "");
-        suffix = suffix.replace(str, "");
+      function compiler(
+        str: string,
+        args: string[],
+        prefix: string,
+        suffix: string
+      ) {
+        let fnStr = "";
         result.add(str);
         const code = hasDict ? ob.data[str] : str;
         if (code) {
@@ -76,14 +80,25 @@ export default function (options: Options): Plugin {
       function overwrite(
         start: number,
         end: number,
-        value: string,
+        value: string | string[],
         args: string[]
       ) {
+        let str, prefix, suffix;
+        if (Array.isArray(value)) {
+          const arr = value.slice(),
+            len = value.length - 1;
+          [arr[0], prefix] = splitByIgnoreReg(arr[0], ignorePrefix);
+          [arr[len], suffix] = splitByIgnoreReg(arr[len], ignoreSuffix);
+          str = arr.map((s, i) => s + (i < len ? `{${i}}` : "")).join("");
+        } else {
+          [str, prefix] = splitByIgnoreReg(value, ignorePrefix);
+          [str, suffix] = splitByIgnoreReg(str, ignoreSuffix);
+        }
         if (ignoreMark && value.indexOf(ignoreMark) == 0) {
           magicString.overwrite(start + 1, start + 1 + ignoreMark.length, "");
           return;
         }
-        const code = compiler(value, args);
+        const code = compiler(str, args, prefix, suffix);
         if (code) {
           magicString.overwrite(start, end, code);
           write = true;
@@ -114,12 +129,8 @@ export default function (options: Options): Plugin {
             }
           } else if (node.type === "TemplateLiteral") {
             const { expressions, quasis, start, end } = node as any;
-            let len = quasis.length - 1;
-            // 组装成 xxx{0}xxx{1}
-            const str = quasis
-              .map((n, i) => n.value.cooked + (len == i ? "" : `{${i}}`))
-              .join("");
-            if (typeof str === "string" && isCN(str)) {
+            const str = quasis.map((n) => n.value.cooked);
+            if (isCN(str.join(","))) {
               // 获取参数
               const args = expressions.map((val) =>
                 magicString.slice(val.start, val.end)
