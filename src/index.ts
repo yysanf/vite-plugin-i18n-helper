@@ -84,6 +84,13 @@ export default function (options: Options): Plugin {
         args: string[]
       ) {
         let str, prefix, suffix;
+        if (
+          ignoreMark &&
+          (Array.isArray(value) ? value[0] : value).indexOf(ignoreMark) == 0
+        ) {
+          magicString.overwrite(start + 1, start + 1 + ignoreMark.length, "");
+          return;
+        }
         if (Array.isArray(value)) {
           const arr = value.slice(),
             len = value.length - 1;
@@ -93,10 +100,6 @@ export default function (options: Options): Plugin {
         } else {
           [str, prefix] = splitByIgnoreReg(value, ignorePrefix);
           [str, suffix] = splitByIgnoreReg(str, ignoreSuffix);
-        }
-        if (ignoreMark && value.indexOf(ignoreMark) == 0) {
-          magicString.overwrite(start + 1, start + 1 + ignoreMark.length, "");
-          return;
         }
         const code = compiler(str, args, prefix, suffix);
         if (code) {
