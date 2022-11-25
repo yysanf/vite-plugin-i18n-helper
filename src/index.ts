@@ -1,165 +1,97 @@
 import type { Plugin } from "vite";
+import { Options, CompilerSuccess } from "./types";
 import fs from "node:fs";
 import { resolve } from "node:path";
 import { createFilter } from "vite";
 import MagicString from "magic-string";
 import { walk } from "estree-walker";
 import { JsonSubject, Observer } from "./observer";
+import transformZH from "./transform/transformZH";
+import transformV3Template from "./transform/transformV3Template";
 
-interface Options {
-  customI18n: string;
-  customI18nUrl: string;
-  dictJson?: string;
-  includes?: Array<string | RegExp> | string | RegExp;
-  exclude?: Array<string | RegExp> | string | RegExp;
-  ignoreMark?: string;
-  ignorePrefix?: RegExp;
-  ignoreSuffix?: RegExp;
-  raw?: boolean;
-  output?: boolean;
-}
 type compilerResult = Set<string>;
 
 const RESULT_ID = "virtual:i18n-helper/result";
 const OUTFILE = "_i18n_helper_result.html";
 
-function isCN(code: string) {
-  return /[\u4E00-\u9FFF]/gmu.test(code);
+export const transformsPresets = [transformZH, transformV3Template];
+
+function loadTransforms(transforms: Options["transforms"]) {
+  const names = new Set([transformZH.name]);
+  const result = [transformZH];
+  if (transforms) {
+    transforms.forEach((t) => {
+      const value =
+        typeof t === "string" ? transformsPresets.find((v) => v.name == t) : t;
+      if (value && !names.has(value.name)) {
+        result.push(value);
+        names.add(value.name);
+      }
+    });
+  }
+  return result;
 }
 
-function splitByIgnoreReg(str: string, reg: RegExp) {
-  const match = str.match(reg);
-  return [str.replace(reg, ""), match ? match[0] : ""];
+function filterFile(id: string) {
+  if (/\.(j|t)s(x?)$/.test(id)) return true;
+  if (/\.vue/.test(id)) {
+    if (id.endsWith(".vue")) return true;
+    const [_, rawQuery = ""] = id.split("?", 2);
+    const query = Object.fromEntries(new URLSearchParams(rawQuery));
+    return query.vue != null && query.type === "script";
+  }
+  return false;
 }
 
 export default function (options: Options): Plugin {
+  const dictJson = options.dictJson;
   let outDir = "";
   const i18nMap: Map<string, compilerResult> = new Map(); // 记录解析结果
   const ob = new Observer({});
   const sub = new JsonSubject();
-  const hasDict = !!options.dictJson;
-  const ignoreMark =
-    typeof options.ignoreMark === "string" ? options.ignoreMark : "i18n!:";
-  const ignorePrefix = options.ignorePrefix || /^\s+/;
-  const ignoreSuffix = options.ignoreSuffix || /\s+$/;
   const filter = createFilter(options.includes, options.exclude);
   sub.add(ob);
   return {
     name: "vite-plugin-i18n-helper",
     transform(code, id) {
-      if (!filter(id) || !/\.(j|t)s(x?)|vue$/.test(id)) return;
+      if (!filter(id) || !filterFile(id)) return;
       const ast = this.parse(code);
       const magicString = new MagicString(code);
-      let write = false;
-      const result: compilerResult = new Set(); // 存储当前解析内容
-      function compiler(
-        str: string,
-        args: string[],
-        prefix: string,
-        suffix: string
-      ) {
-        let fnStr = "";
-        result.add(str);
-        const code = hasDict ? ob.data[str] : str;
-        if (code) {
-          const rawStr = options.raw ? "," + JSON.stringify(str) : "";
-          const argsStr = args.length
-            ? `,[${args.map((v) => v).join(",")}]`
-            : rawStr
-            ? ",null"
-            : "";
-          fnStr = `${options.customI18n}(${JSON.stringify(
-            code
-          )}${argsStr}${rawStr})`;
-          if (prefix || suffix) {
-            fnStr = "`" + prefix + "${" + fnStr + "}" + suffix + "`";
-          }
-        }
-        return fnStr;
-      }
-      function overwrite(
-        start: number,
-        end: number,
-        value: string | string[],
-        args: string[]
-      ) {
-        let str, prefix, suffix;
-        if (
-          ignoreMark &&
-          (Array.isArray(value) ? value[0] : value).indexOf(ignoreMark) == 0
-        ) {
-          magicString.overwrite(start + 1, start + 1 + ignoreMark.length, "");
-          return;
-        }
-        if (Array.isArray(value)) {
-          const arr = value.slice(),
-            len = value.length - 1;
-          [arr[0], prefix] = splitByIgnoreReg(arr[0], ignorePrefix);
-          [arr[len], suffix] = splitByIgnoreReg(arr[len], ignoreSuffix);
-          str = arr.map((s, i) => s + (i < len ? `{${i}}` : "")).join("");
-        } else {
-          [str, prefix] = splitByIgnoreReg(value, ignorePrefix);
-          [str, suffix] = splitByIgnoreReg(str, ignoreSuffix);
-        }
-        const code = compiler(str, args, prefix, suffix);
-        if (code) {
-          magicString.overwrite(start, end, code);
-          write = true;
-        }
-      }
+      const result: Map<string, any[]> = new Map();
+      const compilerSuccess: CompilerSuccess<any> = ({ name, data }) => {
+        const list = result.get(name) || [];
+        list.push(data);
+        result.set(name, list);
+      };
+      const transforms = loadTransforms(options.transforms || []);
+      const visitorPlugin = transforms.map((p) =>
+        p.create(
+          id,
+          options,
+          magicString,
+          dictJson ? ob.data : null,
+          compilerSuccess
+        )
+      );
       walk(ast, {
-        enter(node) {
-          const isConsole =
-            (node as any).type == "CallExpression" &&
-            (node as any).callee.type == "MemberExpression" &&
-            (node as any).callee.object.type == "Identifier" &&
-            (node as any).callee.object.name == "console";
-          const isIgnoreCall =
-            node.type == "CallExpression" &&
-            (node as any).callee.type == "Identifier" &&
-            ((node as any).callee.name == options.customI18n ||
-              (node as any).callee.name == "_createCommentVNode");
-          // 忽略console 和 一些调用方法
-          if (isConsole || isIgnoreCall) {
-            this.skip();
-          }
+        enter(...args) {
+          visitorPlugin.forEach((plugin) => {
+            plugin.visitor.enter && plugin.visitor.enter.apply(this, args);
+          });
         },
-        leave(node) {
-          if (node.type == "Literal") {
-            const { value, start, end } = node as any;
-            if (typeof value === "string" && isCN(value)) {
-              overwrite(start, end, value, []);
-            }
-          } else if (node.type === "TemplateLiteral") {
-            const { expressions, quasis, start, end } = node as any;
-            const str = quasis.map((n) => n.value.cooked);
-            if (isCN(str.join(","))) {
-              // 获取参数
-              const args = expressions.map((val) =>
-                magicString.slice(val.start, val.end)
-              );
-              overwrite(start, end, str, args);
-            }
-          }
+        leave(...args) {
+          visitorPlugin.forEach((plugin) => {
+            plugin.visitor.leave && plugin.visitor.leave.apply(this, args);
+          });
         },
       });
-      if (write) {
-        const imports = new Set();
-        (ast as any).body.forEach((node) => {
-          if (node.type === "ImportDeclaration") {
-            node.specifiers.forEach((specifier) => {
-              imports.add(specifier.local.name);
-            });
-          }
-        });
-        if (!imports.has(options.customI18n)) {
-          // 自动导入 i18n 方法
-          magicString.prepend(
-            `\nimport {${options.customI18n}} from "${options.customI18nUrl}"\n`
-          );
-        }
-      }
-      i18nMap.set(id, result);
+      transforms.forEach((p, i) => {
+        const data = result.get(p.name) || [];
+        const callback = visitorPlugin[i].callback;
+        callback && callback(data);
+      });
+      const words = new Set(result.get(transformZH.name) || []);
+      i18nMap.set(id, words);
       return {
         code: magicString.toString(),
       };
@@ -167,7 +99,7 @@ export default function (options: Options): Plugin {
     configResolved(config) {
       outDir = config.build.outDir || "";
       const isBuild = config.command === "build";
-      if (hasDict) {
+      if (dictJson) {
         if (isBuild) {
           // 读取文件配置
           sub.read(options.dictJson as string);
@@ -183,7 +115,7 @@ export default function (options: Options): Plugin {
           const file = resolve(outDir, OUTFILE);
           fs.writeFileSync(
             file,
-            generatorResultHtml(i18nMap, hasDict ? ob.data : void 0, true)
+            generatorResultHtml(i18nMap, dictJson ? ob.data : void 0, true)
           );
           console.log("i18n-helper-result: " + file);
         }
@@ -195,7 +127,10 @@ export default function (options: Options): Plugin {
       // 添加中间件展示结果页
       middlewares.use(async (req, res, next) => {
         if (req.url && req.url.includes(RESULT_ID)) {
-          const html = generatorResultHtml(i18nMap, hasDict ? ob.data : void 0);
+          const html = generatorResultHtml(
+            i18nMap,
+            dictJson ? ob.data : void 0
+          );
           res.setHeader("Content-Type", "text/html");
           res.setHeader("Cache-Control", "no-cache");
           res.statusCode = 200;
@@ -290,20 +225,19 @@ function generatorResultHtml(
     </body>
     <script>
       document.querySelector(".btns").addEventListener("click",toggle)
-     function toggle (event){
-      if (event.target.tagName.toUpperCase() === 'SPAN') {
-        const cls = event.target.className;
-        const doms = document.querySelectorAll('.container span');
-        Array.from(doms).forEach((dom) => {
-          if (cls === 'all' || dom.className === cls) {
-            dom.style.display = "";
-          } else {
-            dom.style.display = "none";
-          }
-        })
-    }
-
-     }
+      function toggle (event){
+        if (event.target.tagName.toUpperCase() === 'SPAN') {
+          const cls = event.target.className;
+          const doms = document.querySelectorAll('.container span');
+          Array.from(doms).forEach((dom) => {
+            if (cls === 'all' || dom.className === cls) {
+              dom.style.display = "";
+            } else {
+              dom.style.display = "none";
+            }
+          })
+        }
+      }
     </script>
   </html>
   `;

@@ -28,12 +28,14 @@ export default () => {
   return {
     plugins: [
       i18nHelperPlugin({
-        includes: ["src/*"],
+        includes: ["src/**"],
         exclude: ["node_modules/*", "src/i18n.js"],
-        customI18n: "i18nHepler",
+        customI18n: "i18nHelper",
         customI18nUrl: "/src/i18n",
         dictJson: path.resolve(__dirname, "./src/dict.json"),
         raw: true,
+        output: false,
+        transforms: ["V3Template"], // vue3 模板编译优化导致部分内容非响应式 可以增加 V3Template 解决 
       }),
     ],
   }
@@ -54,14 +56,14 @@ const name6 = "    一二三   ";  // 首尾空格不参与编译 可设置ignor
 
 ```ts
 // 处理后结果
-import {i18nHepler} from "/src/i18n.js"
+import {i18nHelper} from "/src/i18n.js"
 const fn = (val) => "(" + val + ")";
-const name1 = i18nHepler("一二三");
-const name2 = i18nHepler("一二三{0}",[name1]);
-const name3 = i18nHepler("{0}一二三{1}",[i18nHepler("一二三{0}",[name1]),fn(name1)]);
-const name4 = i18nHepler("三") + "2" +  i18nHepler("一二三");
+const name1 = i18nHelper("一二三");
+const name2 = i18nHelper("一二三{0}",[name1]);
+const name3 = i18nHelper("{0}一二三{1}",[i18nHelper("一二三{0}",[name1]),fn(name1)]);
+const name4 = i18nHelper("三") + "2" +  i18nHelper("一二三");
 const name5 = "一二三";
-const name6 = `    ${i18nHepler("一二三")}   `;
+const name6 = `    ${i18nHelper("一二三")}   `;
 ```
 
 - 有 dictJson 参数时 会 转义 dictJson 中匹配到的字符
@@ -75,14 +77,14 @@ json 内容
 ```
 ```ts
 // 处理后结果
-import {i18nHepler} from "/src/i18n.js"
+import {i18nHelper} from "/src/i18n.js"
 const fn = val => '(' + val + ')';
-const name1 = i18nHepler("123",null,"一二三");
-const name2 = i18nHepler("123{0}",[name1],"一二三{0}");
-const name3 = i18nHepler("{0}123{1}",[i18nHepler("123{0}",[name1],"一二三{0}"),fn(name1)],"{0}一二三{1}");
-const name4 = "三" + "2" +  i18nHepler("123",null,"一二三");
+const name1 = i18nHelper("123",null,"一二三");
+const name2 = i18nHelper("123{0}",[name1],"一二三{0}");
+const name3 = i18nHelper("{0}123{1}",[i18nHelper("123{0}",[name1],"一二三{0}"),fn(name1)],"{0}一二三{1}");
+const name4 = "三" + "2" +  i18nHelper("123",null,"一二三");
 const name5 = "一二三";
-const name6 = `    ${i18nHepler("123",null,"一二三")}   `; 
+const name6 = `    ${i18nHelper("123",null,"一二三")}   `; 
 ```
 
 ### 参数说明

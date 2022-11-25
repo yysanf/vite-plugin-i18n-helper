@@ -11,12 +11,13 @@ export default defineConfig({
     i18nHelperPlugin({
       includes: ["src/**"],
       exclude: ["node_modules/*", "src/i18n.js"],
-      customI18n: "i18nHepler",
+      customI18n: "i18nHelper",
       customI18nUrl: "/src/i18n",
       dictJson: path.resolve(__dirname, "./src/dict.json"),
       ignoreMark: "i18n!:",
       raw: true,
-      output: false
+      output: false,
+      transforms: ["V3Template"],
     }),
   ],
 });
