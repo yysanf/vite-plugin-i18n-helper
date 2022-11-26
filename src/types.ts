@@ -29,16 +29,17 @@ export interface TransfromInstance {
 }
 
 // 创建节点访问者方法
-export type TransfromCreate<T> = (
-  id: string,
-  options: Options,
-  magicString: MagicString,
-  dictData: Dict | null,
-  success: CompilerSuccess<T>
-) => TransfromInstance;
+export type TransfromCreate = (data: {
+  id: string; // 文件id
+  options: Options; // 插件选项
+  magicString: MagicString; // magicString实例
+  dictData: Dict | null; // 国际化字典数据
+  success: CompilerSuccess<any>; // 成功调用
+  pluginContext: any; // transform上下文
+}) => TransfromInstance;
 
 // 插件信息
 export type Transfrom = {
   name: string; // 插件名
-  create: TransfromCreate<any>; // 创建节点访问者方法
+  create: TransfromCreate; // 创建节点访问者方法
 };

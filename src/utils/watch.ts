@@ -2,10 +2,11 @@ import fs from "node:fs";
 
 type Dict = Record<string, string>;
 
-export class JsonSubject {
-  Observers: Observer[];
-  constructor() {
-    this.Observers = [];
+export class JsonWatch {
+  sub: Subject;
+  constructor(ob: Observer) {
+    this.sub = new Subject();
+    this.sub.add(ob);
   }
   startWatch(jsonPath: string) {
     let timer, watcher;
@@ -28,7 +29,7 @@ export class JsonSubject {
         watcher.on("error", () => {
           watcher.close();
           watcher = void 0;
-          this.notify({});
+          this.sub.notify({});
           pollying();
         });
         this.read(jsonPath);
@@ -49,8 +50,12 @@ export class JsonSubject {
         data = {};
       }
     }
-    this.notify(data);
+    this.sub.notify(data);
   }
+}
+
+export class Subject {
+  Observers: Observer[] = [];
   add(observer) {
     //添加
     this.Observers.push(observer);
@@ -66,7 +71,6 @@ export class JsonSubject {
     });
   }
 }
-
 export class Observer {
   data: Dict;
   constructor(data: Dict) {

@@ -44,6 +44,7 @@
   },
   "dependencies": {
     "estree-walker": "^2.0.1",
+    "htmlparser2": "^8.0.1",
     "magic-string": "^0.25.7",
     "vite": "^3.0.0"
   },

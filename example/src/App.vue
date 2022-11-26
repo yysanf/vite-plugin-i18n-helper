@@ -14,7 +14,7 @@
     <h6>包含指令</h6>
     <div><div id="foo" v-foo>一二三</div></div>
     <div><div id="foo" v-foo title="一二三"></div></div>
-    <div><div id="foo" v-foo title="一二三">{{"一二三"}}</div></div>
+    <div><div id="foo" v-foo title="一二三">"{{"一二三"}}"</div></div>
     <div><div id="foo" v-foo title="一二三">一二三</div></div>
     <h6>static props</h6>
     <div title="一二三" name="name5"></div>
@@ -50,7 +50,19 @@
     <div><Comp :name="name5"><div><span><span><span><span><span>一二三</span></span></span></span></span></div></Comp></div>
     <div><Comp :name="name5"><template #default="name">一二三{{name}}</template></Comp></div>
     <h6>svg</h6>
-    <div><svg title="一二三"><path d="M2,3H5.5L12"/></svg></div>
+    <div><svg title="一二三" style="font-size:12px;width:1em;height:1em"><path d="M2,3H5.5L12"/></svg></div>
+    <div>"静态节点"</div>
+    <h6>StaticVNode</h6>
+    <div>静态节点</div>
+    <div title="一二三">一二三</div>
+    <div>静态节点</div>
+    <div>一二三</div>
+    <div>
+      <div>静态节点</div>
+      <div>一二三</div>
+      <div>静态节点</div>
+      <div>"一二三"</div>
+    </div>
  </div>
 </template>
 <script>
