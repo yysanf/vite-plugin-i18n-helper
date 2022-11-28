@@ -52,10 +52,10 @@ const create: TransfromCreate = ({
             options,
             options.dictJson ? dictData : null
           );
-          if (result) {
+          if (result.code) {
             magicString.overwrite(start, end, result.code);
-            success({ name, data: result });
           }
+          success({ name, data: result });
         }
       } else if (node.type === "TemplateLiteral") {
         const { expressions, quasis, start, end } = node as any;
@@ -71,10 +71,10 @@ const create: TransfromCreate = ({
             options,
             options.dictJson ? dictData : null
           );
-          if (result) {
+          if (result.code) {
             magicString.overwrite(start, end, result.code);
-            success({ name, data: result });
           }
+          success({ name, data: result });
         }
       }
     },

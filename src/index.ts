@@ -68,7 +68,9 @@ export default function (options: Options): Plugin {
         const callback = visitorPlugin[i].callback;
         callback && callback(data);
       });
-      const words = new Set(result.get(transformZH.name) || []);
+      const words = new Set(
+        (result.get(transformZH.name) || []).map((val) => val.str)
+      );
       i18nMap.set(id, words);
       return {
         code: magicString.toString(),

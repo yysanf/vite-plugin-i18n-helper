@@ -71,8 +71,8 @@ export function overwriteZH(
         suffix,
         options.raw ? str : void 0
       );
-    return { str, code };
   }
+  return { str, code };
 }
 
 // 匹配文件后缀
@@ -139,7 +139,7 @@ export function generatorResultHtml(
   if (build) {
     const completed: Set<string> = new Set(),
       unCompleted: Set<string> = new Set();
-    i18nMap.forEach((val, k) => {
+    i18nMap.forEach((val) => {
       val.forEach((k) => {
         !dict || dict[k] ? completed.add(k) : unCompleted.add(k);
       });
