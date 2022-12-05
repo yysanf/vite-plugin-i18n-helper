@@ -42,39 +42,48 @@ export default function (options: Options): Plugin {
   return {
     name: "vite-plugin-i18n-helper",
     transform(code, id) {
-      if (!filter(id) || !filterFile(id)) return;
-      const ast = this.parse(code);
-      const magicString = new MagicString(code);
-      const result: Map<string, any[]> = new Map();
-      const compilerSuccess: CompilerSuccess<any> = ({ name, data }) => {
-        const list = result.get(name) || [];
-        list.push(data);
-        result.set(name, list);
-      };
-      const transforms = loadTransforms(options.transforms || []);
-      const visitorPlugin = transforms.map((p) =>
-        p.create({
-          id,
-          options,
-          magicString,
-          dictData: dictJson ? ob.data : null,
-          success: compilerSuccess,
-          pluginContext: this,
-        })
-      );
-      walkAst(ast, visitorPlugin);
-      transforms.forEach((p, i) => {
-        const data = result.get(p.name) || [];
-        const callback = visitorPlugin[i].callback;
-        callback && callback(data);
-      });
-      const words = new Set(
-        (result.get(transformZH.name) || []).map((val) => val.str)
-      );
-      i18nMap.set(id, words);
-      return {
-        code: magicString.toString(),
-      };
+      try {
+        if (!filter(id) || !filterFile(id)) return;
+        let ast = this.parse(code);
+        const magicString = new MagicString(code);
+        const result: Map<string, any[]> = new Map();
+        const compilerSuccess: CompilerSuccess<any> = ({ name, data }) => {
+          const list = result.get(name) || [];
+          list.push(data);
+          result.set(name, list);
+        };
+        const transforms = loadTransforms(options.transforms || []);
+        const visitorPlugin = transforms.map((p) =>
+          p.create({
+            id,
+            options,
+            magicString,
+            dictData: dictJson ? ob.data : null,
+            success: compilerSuccess,
+            pluginContext: this,
+          })
+        );
+        walkAst(ast, visitorPlugin);
+        transforms.forEach((p, i) => {
+          const data = result.get(p.name) || [];
+          const callback = visitorPlugin[i].callback;
+          callback && callback(data);
+        });
+        const words = new Set(
+          (result.get(transformZH.name) || []).map((val) => val.str)
+        );
+        i18nMap.set(id, words);
+        return {
+          code: magicString.toString(),
+          map: magicString.generateMap({ source: id, includeContent: true }),
+        };
+      } catch (error) {
+        this.warn({
+          code: "PASE_ERROR",
+          message: `i18n-helper-plugin: failed to parse ${id}`,
+        });
+        return null;
+      }
     },
     configResolved(config) {
       outDir = config.build.outDir || "";

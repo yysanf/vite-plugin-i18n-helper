@@ -177,20 +177,28 @@ const create: TransfromCreate = (params) => {
                     const staticStr = magicString.slice(arg.start, arg.end);
                     const htmlStr = new Function("return " + staticStr)();
                     if (isZH(htmlStr)) {
-                      const staticCode = parser(htmlStr, getVNodeCallee);
-                      const staticAst = pluginContext.parse(staticCode);
-                      const magicStr = new MagicString(staticCode);
-                      const transformParams = {
-                        ...params,
-                        magicString: magicStr,
-                      };
-                      const visitorList = [
-                        create(transformParams),
-                        transformZH.create(transformParams),
-                      ];
-                      walkAst(staticAst, visitorList);
-                      code = magicStr.toString();
-                      if (isCallExpression(options.customI18n, code)) flag = 2;
+                      try {
+                        const staticCode = parser(htmlStr, getVNodeCallee);
+                        const staticAst = pluginContext.parse(staticCode);
+                        const magicStr = new MagicString(staticCode);
+                        const transformParams = {
+                          ...params,
+                          magicString: magicStr,
+                        };
+                        const visitorList = [
+                          create(transformParams),
+                          transformZH.create(transformParams),
+                        ];
+                        walkAst(staticAst, visitorList);
+                        code = magicStr.toString();
+                        if (isCallExpression(options.customI18n, code))
+                          flag = 2;
+                      } catch (error) {
+                        pluginContext.warn({
+                          code: "PASE_ERROR",
+                          message: `i18n-helper-plugin: ${TRANSFORM_NAME} failed to parse code ${htmlStr} in file ${id} `,
+                        });
+                      }
                     }
                   }
                 }
