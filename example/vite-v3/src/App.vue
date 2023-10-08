@@ -1,5 +1,6 @@
 <template>
  <div>
+    <div><span>一二三 {{ name5 }} 一二三</span></div>
     <button @click="setLocale('ZH_CN')">中文</button>
     <button @click="setLocale('EN')">英文</button>
     <h6>文本测试</h6>

@@ -2,7 +2,7 @@ import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import typescript from "rollup-plugin-typescript2";
 import path from "node:path";
-import i18nHelperPlugin from "../src/index";
+import i18nHelperPlugin from "vite-plugin-i18n-helper";
 
 export default defineConfig({
   plugins: [
