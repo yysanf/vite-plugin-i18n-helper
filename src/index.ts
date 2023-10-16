@@ -1,20 +1,30 @@
-import type { Plugin } from "vite";
-import { Options, CompilerSuccess } from "./types";
 import fs from "node:fs";
 import { resolve } from "node:path";
-import { createFilter } from "vite";
+import { createUnplugin, UnpluginFactory } from "unplugin";
+import { Options, CompilerSuccess } from "./types";
+import { createFilter } from "@rollup/pluginutils";
 import MagicString from "magic-string";
-import { JsonWatch, Observer } from "./utils/watch";
 import transformZH from "./transform/transformZH";
 import transformV3Template from "./transform/transformV3Template";
-import { filterFile, walkAst, generatorResultHtml } from "./utils";
+import transformV2Template from "./transform/transformV2Template";
+import {
+  filterFile,
+  walkAst,
+  syncReadJson,
+  generatorResultHtml,
+  createFileHash,
+} from "./utils";
 
-type compilerResult = Set<string>;
+export const transformsPresets = [
+  transformZH,
+  transformV3Template,
+  transformV2Template,
+];
+
+export { createFileHash };
 
 const RESULT_ID = "virtual:i18n-helper/result";
 const OUTFILE = "_i18n_helper_result.html";
-
-export const transformsPresets = [transformZH, transformV3Template];
 
 function loadTransforms(transforms: Options["transforms"]) {
   const names = new Set([transformZH.name]);
@@ -32,18 +42,18 @@ function loadTransforms(transforms: Options["transforms"]) {
   return result;
 }
 
-export default function (options: Options): Plugin {
-  const dictJson = options.dictJson;
+const pluginFactory: UnpluginFactory<Options> = (options) => {
   let outDir = "";
-  const i18nMap: Map<string, compilerResult> = new Map(); // 记录解析结果
-  const ob = new Observer({});
-  const watch = new JsonWatch(ob);
+  const i18nMap: Map<string, Set<string>> = new Map(); // 记录解析结果
   const filter = createFilter(options.includes, options.exclude);
+  const dictData = options.dictJson ? syncReadJson(options.dictJson) : null;
   return {
     name: "vite-plugin-i18n-helper",
+    transformInclude(id) {
+      return filter(id) && filterFile(id);
+    },
     transform(code, id) {
       try {
-        if (!filter(id) || !filterFile(id)) return;
         let ast = this.parse(code);
         const magicString = new MagicString(code);
         const result: Map<string, any[]> = new Map();
@@ -58,7 +68,7 @@ export default function (options: Options): Plugin {
             id,
             options,
             magicString,
-            dictData: dictJson ? ob.data : null,
+            dictData,
             success: compilerSuccess,
             pluginContext: this,
           })
@@ -85,48 +95,45 @@ export default function (options: Options): Plugin {
         return null;
       }
     },
-    configResolved(config) {
-      outDir = config.build.outDir || "";
-      const isBuild = config.command === "build";
-      if (dictJson) {
-        if (isBuild) {
-          // 读取文件配置
-          watch.read(options.dictJson as string);
-        } else {
-          // 开启文件监控
-          watch.startWatch(options.dictJson as string);
-        }
-      }
-    },
-    closeBundle() {
+    writeBundle() {
       try {
         if (options.output && outDir) {
           const file = resolve(outDir, OUTFILE);
-          fs.writeFileSync(
-            file,
-            generatorResultHtml(i18nMap, dictJson ? ob.data : void 0, true)
-          );
+          fs.writeFileSync(file, generatorResultHtml(i18nMap, dictData, true));
           console.log("i18n-helper-result: " + file);
         }
       } catch (error) {
         console.log("i18n-helper-result: 异常 ", error);
       }
     },
-    configureServer({ middlewares }) {
-      // 添加中间件展示结果页
-      middlewares.use(async (req, res, next) => {
-        if (req.url && req.url.includes(RESULT_ID)) {
-          const html = generatorResultHtml(
-            i18nMap,
-            dictJson ? ob.data : void 0
-          );
-          res.setHeader("Content-Type", "text/html");
-          res.setHeader("Cache-Control", "no-cache");
-          res.statusCode = 200;
-          return res.end(html);
-        }
-        next();
-      });
+    vite: {
+      configResolved(config) {
+        outDir = config.build.outDir || "";
+      },
+      configureServer({ middlewares }) {
+        // 添加中间件展示结果页
+        middlewares.use(async (req, res, next) => {
+          if (req.url && req.url.includes(RESULT_ID)) {
+            const html = generatorResultHtml(i18nMap, dictData);
+            res.setHeader("Content-Type", "text/html");
+            res.setHeader("Cache-Control", "no-cache");
+            res.statusCode = 200;
+            return res.end(html);
+          }
+          next();
+        });
+      },
+    },
+    webpack(compiler) {
+      outDir = compiler.options.output.path;
     },
   };
-}
+};
+
+const unplugin = createUnplugin(pluginFactory);
+
+export const vitePlugin = unplugin.vite;
+
+export const webpackPlugin = unplugin.webpack;
+
+export default unplugin;

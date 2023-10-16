@@ -8,7 +8,7 @@ export default defineConfig({
   plugins: [
     typescript({ tsconfig: "../tsconfig.json" }),
     vue(),
-    i18nHelperPlugin({
+    i18nHelperPlugin.vite({
       includes: ["src/**"],
       exclude: ["node_modules/*", "src/i18n.js"],
       customI18n: "i18nHelper",

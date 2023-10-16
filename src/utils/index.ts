@@ -1,5 +1,7 @@
+import fs from "node:fs";
+import crypto from "node:crypto";
 import { type BaseNode, walk } from "estree-walker";
-import { Options, TransfromInstance } from "../types";
+import { Dict, Options, TransfromInstance } from "../types";
 
 // 匹配中文
 export function isZH(code: string) {
@@ -82,9 +84,34 @@ export function filterFile(id: string) {
     if (id.endsWith(".vue")) return true;
     const [_, rawQuery = ""] = id.split("?", 2);
     const query = Object.fromEntries(new URLSearchParams(rawQuery));
-    return query.vue != null && query.type === "script";
+    return (
+      query.vue != null &&
+      (query.type === "script" || query.type === "template")
+    );
   }
   return false;
+}
+
+export function syncReadJson(jsonPath: string){
+  if (fs.existsSync(jsonPath)) {
+    const str = fs.readFileSync(jsonPath, "utf-8");
+    try {
+      return JSON.parse(str) as Dict;
+    } catch (error) {
+    }
+  }
+  return null;
+}
+
+export function createFileHash(path: string){
+  try {
+    const data = fs.readFileSync(path);
+    const hash = crypto.createHash('md4')
+    hash.update(data);
+    return hash.digest('hex');
+  } catch (error) {
+    return ''
+  }
 }
 
 // 遍历ast
@@ -106,7 +133,7 @@ export function walkAst(ast: BaseNode, visitorPlugin: TransfromInstance[]) {
 // 生成结果html
 export function generatorResultHtml(
   i18nMap: Map<string, Set<string>>,
-  dict?: Record<string, string>,
+  dict?: Record<string, string> | null,
   build?: boolean
 ) {
   function generator(

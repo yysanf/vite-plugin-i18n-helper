@@ -27,7 +27,7 @@ import path from 'path'
 export default () => {
   return {
     plugins: [
-      i18nHelperPlugin({
+      i18nHelperPlugin.vite({
         includes: ["src/**"],
         exclude: ["node_modules/*", "src/i18n.js"],
         customI18n: "i18nHelper",
@@ -99,12 +99,72 @@ const name6 = `    ${i18nHelper("123",null,"一二三")}   `;
 | ignoreMark   | `string` | i18n!: | 否 | 忽略以该标识开头的内容 |
 | ignorePrefix   | `RegExp` | `/^\s+/` | 否 | 忽略正则匹配的前缀内容 (默认首尾空格会忽略)|
 | ignoreSuffix   | `RegExp` | `/\s+$/` | 否 | 忽略正则匹配的后缀内容 (默认首尾空格会忽略) |
+| transforms   | `Array<string>` |  | 否 |  参见 内置 transfrom
 | raw   | `boolean` | - | 否 | 是否保留 dictJson 匹配前的 原始值 (是 将作为customI18n 第三个参数传入) |
 | output   | `boolean` | - | 否 | 是否输出字符串处理的结果  |
 
+
+### 内置 transfrom
+- V3Template (需执行于 .vue 文件被编译 之后)
+  - vue3 template 模板的中文节点经过vue3的模板优化被标记为静态节，包含中文的静态节点转为国际化代码后，V3Template会将这些再编译成响应式节点
+- V2Template (需执行于 .vue 文件被编译 之后)
+  - vue2 包含中文的静态节点静态节点转为国际化代码后 V2Template会将这些再编译成响应式节点
+
+
+### webpack
+-  dictJson的内容更改后没有生效：具有缓存功能的loader(cache-loader, vue-loader)导致的，一般这些 loader 有缓存过期的配置项。例如 vue-cli 里的 vue-loader
+``` js
+// vue.config.js
+chainWebpack: config => {
+  // 将国际化字典内容生成hash
+  const hash = i18nHelperPlugin.createFileHash(path.resolve(__dirname, './src/dict.json'));
+  config.module
+    .rule("vue")
+    .use("vue-loader")
+    .tap(options => {
+      // 找到 vue-loader 的配置 并 设置 cacheIdentifier 加入国际化字典配置的hash
+      options.cacheIdentifier += hash; 
+      return options;
+    });
+}
+
+// webpack5 的 buildDependencies 里面加入 配置
+configureWebpack: {
+  cache: {
+    buildDependencies: {
+      config: [path.resolve(__dirname, './src/dict.json')],
+    },
+  }
+}
+```
+
+- babel处理早于插件导致 ES6 模板字符串编译失效
+``` js
+/** 例如在 vue-cli脚手架项目中 */
+// 源码
+const name = `${1}一二三${2}`;
+//预期结果
+const name = i18nHelper("{0}123{1}",[1,2],"{0}一二三{1}")
+//实际结果
+var name = "".concat(1, i18nHelper("123",null,"一二三"), 2);
+
+
+// 因为 babel-loader 对ES6语法做了转义, 而插件执行顺序是在 babel后
+// 所有需要将 babel 处理时机置后 改为enforce="post"
+
+// vue.config.js
+chainWebpack: config => {
+    config.module
+    .rule("js")
+    .post()
+    .end();
+}
+```
+
 ### 辅助功能
-- 查看替换字符串
+- 查看替换字符串 (vite)
   *  ip + 端口 + '/virtual:i18n-helper/result' (例如 http://127.0.0.1:5173/virtual:i18n-helper/result)
   * 绿色已完成替换   橙色 未完成
 - 构建时输出替换结果
   * 设置 output:true  会输出  _i18n_helper_result.html 文件
+  * 注意事项 webpack 开启了缓存(cache-loader等)时,命中缓存则无输出结果

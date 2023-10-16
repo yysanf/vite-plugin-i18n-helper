@@ -1,6 +1,6 @@
 import MagicString from "magic-string";
 import { TransfromCreate, TransfromInstance } from "../types";
-import { isZH, walkAst } from "../utils";
+import { isCallExpression, isZH, walkAst } from "../utils";
 import { parseHTML } from "../utils/parse";
 import transformZH from "./transformZH";
 
@@ -8,9 +8,6 @@ type HoistedFlag = Map<string, number>;
 type HoistedCode = Map<string, string>;
 type HoistedInitNode = Map<string, any>;
 
-function isCallExpression(calleeName: string, str: string) {
-  return new RegExp(calleeName + "\\(.+\\)").test(str);
-}
 
 const calleNameMap = {
   element: "createElementVNode",

@@ -1,0 +1,20 @@
+{
+  "name": "vite-vue2",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^4.4.5",
+    "vite-plugin-vue2": "^2.0.3",
+    "vue-template-compiler": "^2.7.14"
+  },
+  "dependencies": {
+    "vue": "2",
+    "vue-i18n": "^8.27.0"
+  }
+}

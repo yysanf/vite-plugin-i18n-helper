@@ -46,12 +46,7 @@ const create: TransfromCreate = ({
           isZH(value) &&
           !handlerIgnore(value, start)
         ) {
-          const result = overwriteZH(
-            value,
-            [],
-            options,
-            options.dictJson ? dictData : null
-          );
+          const result = overwriteZH(value, [], options, dictData);
           if (result.code) {
             magicString.overwrite(start, end, result.code);
           }
@@ -65,12 +60,7 @@ const create: TransfromCreate = ({
           const args = expressions.map((val) =>
             magicString.slice(val.start, val.end)
           );
-          const result = overwriteZH(
-            str,
-            args,
-            options,
-            options.dictJson ? dictData : null
-          );
+          const result = overwriteZH(str, args, options, dictData);
           if (result.code) {
             magicString.overwrite(start, end, result.code);
           }

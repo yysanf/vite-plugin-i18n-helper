@@ -1,0 +1,49 @@
+{
+  "name": "webpack-vue2",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "serve": "vue-cli-service serve --host 0.0.0.0",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint"
+  },
+  "dependencies": {
+    "core-js": "^3.4.4",
+    "vue": "^2.6.10",
+    "vue-i18n": "^8.27.0"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^11.0.0",
+    "@commitlint/config-angular": "^11.0.0",
+    "@v2icons/ionicons5": "^0.12.0",
+    "@v2icons/utils": "^0.1.4",
+    "@vue/cli-plugin-babel": "^4.1.0",
+    "@vue/cli-plugin-eslint": "^4.1.0",
+    "@vue/cli-plugin-router": "^4.1.0",
+    "@vue/cli-plugin-vuex": "^4.1.0",
+    "@vue/cli-service": "^4.1.0",
+    "@vue/eslint-config-prettier": "^5.0.0",
+    "adm-zip": "^0.5.9",
+    "babel-eslint": "^10.0.3",
+    "babel-plugin-component": "^1.1.1",
+    "babel-plugin-import": "^1.13.3",
+    "commitizen": "^4.2.3",
+    "cz-conventional-changelog": "^3.3.0",
+    "eslint": "^5.16.0",
+    "eslint-plugin-prettier": "^3.1.1",
+    "eslint-plugin-vue": "^5.0.0",
+    "filemanager-webpack-plugin": "^2.0.5",
+    "git-flow": "^0.2.0",
+    "hard-source-webpack-plugin": "^0.13.1",
+    "husky": "^4.3.7",
+    "less": "^3.0.4",
+    "less-loader": "^5.0.0",
+    "node-ssh": "^13.0.0",
+    "prettier": "^1.19.1",
+    "progress-bar-webpack-plugin": "^2.1.0",
+    "style-resources-loader": "^1.5.0",
+    "svg-sprite-loader": "^6.0.11",
+    "vue-cli-plugin-style-resources-loader": "^0.1.5",
+    "vue-template-compiler": "^2.6.10"
+  }
+}
