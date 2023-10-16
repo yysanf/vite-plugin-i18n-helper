@@ -1,4 +1,4 @@
-# @cnhis-frontend/unplugin-i18n-helper
+# unplugin-i18n-helper
 
 ## 简介
 - 自动查找 包含中文 的字符串和模板字符串，并替换为自定义的国际化方法
@@ -6,8 +6,6 @@
 ## 安装
 
 **node version:** >=16.0.0
-
-**vite version:** >=3.0.0
 
 ```bash
 npm i @cnhis-frontend/unplugin-i18n-helper -D
