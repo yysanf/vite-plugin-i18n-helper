@@ -1,4 +1,4 @@
-# vite-plugin-i18n-helper
+# @cnhis-frontend/unplugin-i18n-helper
 
 ## 简介
 - 自动查找 包含中文 的字符串和模板字符串，并替换为自定义的国际化方法
@@ -10,11 +10,11 @@
 **vite version:** >=3.0.0
 
 ```bash
-npm i vite-plugin-i18n-helper -D
+npm i @cnhis-frontend/unplugin-i18n-helper -D
 # or
-yarn add vite-plugin-i18n-helper -D
+yarn add @cnhis-frontend/unplugin-i18n-helper -D
 # or
-pnpm install vite-plugin-i18n-helper -D
+pnpm install @cnhis-frontend/unplugin-i18n-helper -D
 ```
 
 ## 使用
@@ -22,7 +22,7 @@ pnpm install vite-plugin-i18n-helper -D
 - vite.config.ts 中的配置插件
 
 ```ts
-import i18nHelperPlugin from 'vite-plugin-i18n-helper'
+import i18nHelperPlugin from '@cnhis-frontend/unplugin-i18n-helper'
 import path from 'path'
 export default () => {
   return {

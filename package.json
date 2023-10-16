@@ -1,6 +1,6 @@
 {
-  "name": "vite-plugin-i18n-helper",
-  "version": "1.0.4",
+  "name": "@cnhis-frontend/unplugin-i18n-helper",
+  "version": "2.0.0-beta.0",
   "license": "MIT",
   "scripts": {
     "build": "cross-env ENV=production rollup -c --bundleConfigAsCjs"
@@ -20,7 +20,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/yysanf/vite-plugin-i18n-helper"
+    "url": "git+https://github.com/yysanf/vite-plugin-i18n-helper.git"
   },
   "bugs": {
     "url": "https://github.com/yysanf/vite-plugin-i18n-helper/issues"
@@ -48,5 +48,12 @@
     "magic-string": "^0.25.7",
     "unplugin": "^1.5.0",
     "@rollup/pluginutils": "^5.0.0"
-  }
+  },
+  "description": "自动查找 包含中文 的字符串和模板字符串，并替换为自定义的国际化方法",
+  "keywords": [
+    "vite",
+    "unplugin",
+    "i18n"
+  ],
+  "author": "chenzheng"
 }
