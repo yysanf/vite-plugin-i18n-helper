@@ -94,6 +94,9 @@ function Comp(props, context){
 }
 
 
+fn('一二三') // skipCallExpression
+console.log('一二三')
+
 </script>
 <style scoped>
 h6 {

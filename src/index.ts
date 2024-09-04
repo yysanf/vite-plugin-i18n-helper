@@ -63,10 +63,14 @@ const pluginFactory: UnpluginFactory<Options> = (options) => {
           result.set(name, list);
         };
         const transforms = loadTransforms(options.transforms || []);
+        const pluginOption = {
+          ...options,
+          skipCallExpression: options.skipCallExpression ?? /^console\.[a-zA-Z]+$/,
+        };
         const visitorPlugin = transforms.map((p) =>
           p.create({
             id,
-            options,
+            options: pluginOption,
             magicString,
             dictData,
             success: compilerSuccess,

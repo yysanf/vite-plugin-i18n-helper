@@ -33,7 +33,8 @@ export default () => {
         dictJson: path.resolve(__dirname, "./src/dict.json"),
         raw: true,
         output: false,
-        transforms: ["V3Template"], // vue3 模板编译优化导致部分内容非响应式 可以增加 V3Template 解决 
+        transforms: ["V3Template"], // vue3 模板编译静态提升优化导致部分内容非响应式 可以增加 V3Template 解决 
+        skipCallExpression: /^fn$/ // 默认值 /^console\.[a-zA-Z]+$/ 不处理console.log 等 console 调用
       }),
     ],
   }
@@ -49,6 +50,8 @@ const name3 = `${`一二三${name1}`}一二三${fn(name1)}`; // 复杂模板字�
 const name4 = "三" + "2" +  "一二三"; // 表达式不参与 只针对字符串和模板字符串
 const name5 = "i18n!:一二三"; // i18n!: 开头的内容不参与编译
 const name6 = "    一二三   ";  // 首尾空格不参与编译 可设置ignorePrefix和ignoreSuffix自定义规则
+fn('一二三'); // skipCallExpression 配置 跳过 fn 的入参处理
+console.log('一二三')
 ```
 - 无 dictJson 参数时 会 转义所有包含中文的字符
 
@@ -62,6 +65,8 @@ const name3 = i18nHelper("{0}一二三{1}",[i18nHelper("一二三{0}",[name1]),f
 const name4 = i18nHelper("三") + "2" +  i18nHelper("一二三");
 const name5 = "一二三";
 const name6 = `    ${i18nHelper("一二三")}   `;
+fn('一二三'); // skipCallExpression 配置 跳过 fn 的入参处理
+console.log(i18nHelper("一二三"));
 ```
 
 - 有 dictJson 参数时 会 转义 dictJson 中匹配到的字符
@@ -97,6 +102,7 @@ const name6 = `    ${i18nHelper("123",null,"一二三")}   `;
 | ignoreMark   | `string` | i18n!: | 否 | 忽略以该标识开头的内容 |
 | ignorePrefix   | `RegExp` | `/^\s+/` | 否 | 忽略正则匹配的前缀内容 (默认首尾空格会忽略)|
 | ignoreSuffix   | `RegExp` | `/\s+$/` | 否 | 忽略正则匹配的后缀内容 (默认首尾空格会忽略) |
+| skipCallExpression   | `Array<RegExp>\|RegExp` | /^console\.[a-zA-Z]+$/ | 否 | 跳过调用表达式的入参处理(默认不处理console.*())  |
 | transforms   | `Array<string>` |  | 否 |  参见 内置 transfrom
 | raw   | `boolean` | - | 否 | 是否保留 dictJson 匹配前的 原始值 (是 将作为customI18n 第三个参数传入) |
 | output   | `boolean` | - | 否 | 是否输出字符串处理的结果  |

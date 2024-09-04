@@ -10,6 +10,7 @@ export declare interface Options {
   ignoreMark?: string;
   ignorePrefix?: RegExp;
   ignoreSuffix?: RegExp;
+  skipCallExpression?:  Array<RegExp> | RegExp;
   raw?: boolean;
   output?: boolean;
   transforms?: (Transfrom | string)[];

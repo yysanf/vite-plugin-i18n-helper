@@ -18,6 +18,7 @@ export default defineConfig({
       raw: true,
       output: false,
       transforms: ["V3Template"],
+      skipCallExpression: /^fn$/
     }),
   ],
 });

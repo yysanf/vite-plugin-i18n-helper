@@ -17,21 +17,29 @@ const create: TransfromCreate = ({
       return true;
     }
   };
+
+  const skipCallExpression = options.skipCallExpression
+    ? Array.isArray(options.skipCallExpression)
+      ? function (regs: RegExp[], value: string) {
+          return regs.some((reg) => reg.test(value));
+        }.bind(null, options.skipCallExpression)
+      : function (reg: RegExp, value: string) {
+          return reg.test(value);
+        }.bind(null, options.skipCallExpression)
+    : null;
+
   const imports = new Set();
   const visitor: Visitor = {
     enter(node) {
-      const isConsole =
-        (node as any).type == "CallExpression" &&
-        (node as any).callee.type == "MemberExpression" &&
-        (node as any).callee.object.type == "Identifier" &&
-        (node as any).callee.object.name == "console";
-      const isIgnoreCall =
-        node.type == "CallExpression" &&
-        (node as any).callee.type == "Identifier" &&
-        (node as any).callee.name == options.customI18n;
-      // 忽略console 和 一些调用方法
-      if (isConsole || isIgnoreCall) {
-        this.skip();
+      if ((node as any).type == "CallExpression") {
+        const { start, end } = (node as any).callee;
+        const calleeExp = magicString.slice(start, end);
+        if (
+          calleeExp === options.customI18n ||
+          (skipCallExpression && skipCallExpression(calleeExp))
+        ) {
+          this.skip();
+        }
       } else if (node.type === "ImportDeclaration") {
         (node as any).specifiers.forEach((specifier) => {
           imports.add(specifier.local.name);
