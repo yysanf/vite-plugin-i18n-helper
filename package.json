@@ -1,6 +1,6 @@
 {
   "name": "@cnhis-frontend/unplugin-i18n-helper",
-  "version": "2.0.0-beta.0",
+  "version": "2.0.0",
   "license": "MIT",
   "scripts": {
     "build": "cross-env ENV=production rollup -c --bundleConfigAsCjs"
