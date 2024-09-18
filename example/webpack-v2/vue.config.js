@@ -18,6 +18,7 @@ let plugins = [
     transforms: ['V2Template'],
     raw: true,
     output: true,
+    jsx: true,
   })
 ];
 

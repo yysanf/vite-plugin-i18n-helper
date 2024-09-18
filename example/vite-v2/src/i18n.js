@@ -1,7 +1,6 @@
 
 import Vue from "vue";
 import VueI18n from "vue-i18n";
-import json from "./dict.json"
 
 Vue.use(VueI18n);
 
@@ -19,8 +18,11 @@ export const i18n = new VueI18n({
   }
 });
 
-export function i18nHelper(key, args, _str) {
-  const code = json[key]
-  const value = code ? i18n.t(code, args) : key;
-  return value;
+export function i18nHelper(key, args, str) {
+  try {
+    const value = i18n.t(key, args);
+    return value;
+  } catch (error) {
+    return str || key;
+  }
 }

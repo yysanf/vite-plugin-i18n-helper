@@ -92,25 +92,24 @@ export function filterFile(id: string) {
   return false;
 }
 
-export function syncReadJson(jsonPath: string){
+export function syncReadJson(jsonPath: string) {
   if (fs.existsSync(jsonPath)) {
     const str = fs.readFileSync(jsonPath, "utf-8");
     try {
       return JSON.parse(str) as Dict;
-    } catch (error) {
-    }
+    } catch (error) {}
   }
   return null;
 }
 
-export function createFileHash(path: string){
+export function createFileHash(path: string) {
   try {
     const data = fs.readFileSync(path);
-    const hash = crypto.createHash('md4')
+    const hash = crypto.createHash("md5");
     hash.update(data);
-    return hash.digest('hex');
+    return hash.digest("hex");
   } catch (error) {
-    return ''
+    return "";
   }
 }
 
@@ -118,13 +117,17 @@ export function createFileHash(path: string){
 export function walkAst(ast: BaseNode, visitorPlugin: TransfromInstance[]) {
   walk(ast, {
     enter(...args) {
-      visitorPlugin.forEach((plugin) => {
-        plugin.visitor.enter && plugin.visitor.enter.apply(this, args);
+      visitorPlugin.every((plugin) => {
+        return plugin.visitor.enter
+          ? (plugin.visitor.enter.apply(this, args) as any) !== false
+          : true;
       });
     },
     leave(...args) {
-      visitorPlugin.forEach((plugin) => {
-        plugin.visitor.leave && plugin.visitor.leave.apply(this, args);
+      visitorPlugin.every((plugin) => {
+        return plugin.visitor.leave
+          ? (plugin.visitor.leave.apply(this, args) as any) !== false
+          : true;
       });
     },
   });

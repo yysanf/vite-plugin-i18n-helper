@@ -14,6 +14,7 @@ export declare interface Options {
   raw?: boolean;
   output?: boolean;
   transforms?: (Transfrom | string)[];
+  jsx?: boolean;
 }
 
 export type Visitor = Parameters<typeof walk>[1];

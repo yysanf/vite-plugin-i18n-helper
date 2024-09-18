@@ -106,6 +106,7 @@ const name6 = `    ${i18nHelper("123",null,"一二三")}   `;
 | transforms   | `Array<string>` |  | 否 |  参见 内置 transfrom
 | raw   | `boolean` | - | 否 | 是否保留 dictJson 匹配前的 原始值 (是 将作为customI18n 第三个参数传入) |
 | output   | `boolean` | - | 否 | 是否输出字符串处理的结果  |
+| jsx   | `boolean` | - | 否 | 针对jsx的处理  |
 
 
 ### 内置 transfrom
@@ -153,9 +154,12 @@ const name = i18nHelper("{0}123{1}",[1,2],"{0}一二三{1}")
 var name = "".concat(1, i18nHelper("123",null,"一二三"), 2);
 
 
-// 因为 babel-loader 对ES6语法做了转义, 而插件执行顺序是在 babel后
-// 所有需要将 babel 处理时机置后 改为enforce="post"
-
+/**
+ * 方案一
+ * 因为 babel-loader 对ES6语法做了转义, 而插件执行顺序是在 babel后
+ * 所以需要将 babel 处理时机置后 改为enforce="post" 
+ * 注意js 文件中有 jsx 的代码则要启用配置选项jsx避免报错
+ */
 // vue.config.js
 chainWebpack: config => {
     config.module
@@ -163,6 +167,22 @@ chainWebpack: config => {
     .post()
     .end();
 }
+
+/**
+ * 方案二
+ * 若不考虑兼容性问题，可以 exclude 选项 关掉 babel 的 模板字符串 处理插件
+ */
+// babel.config.js
+module.exports = {
+  presets: [
+    [
+      "@vue/cli-plugin-babel/preset",
+      {
+        exclude: ["transform-template-literals"],
+      },
+    ],
+  ],
+};
 ```
 
 ### 辅助功能

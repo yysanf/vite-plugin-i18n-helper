@@ -28,6 +28,8 @@ const create: TransfromCreate = ({
         }.bind(null, options.skipCallExpression)
     : null;
 
+  const jsx = options.jsx;
+
   const imports = new Set();
   const visitor: Visitor = {
     enter(node) {
@@ -46,8 +48,8 @@ const create: TransfromCreate = ({
         });
       }
     },
-    leave(node) {
-      if (node.type == "Literal") {
+    leave(node, parent) {
+      if (node.type == "Literal" || (jsx && node.type == "JSXText")) {
         const { value, start, end } = node as any;
         if (
           typeof value === "string" &&
@@ -56,9 +58,13 @@ const create: TransfromCreate = ({
         ) {
           const result = overwriteZH(value, [], options, dictData);
           if (result.code) {
-            magicString.overwrite(start, end, result.code);
+            let code = result.code;
+            if (parent?.type === "Property") code = `[${code}]`;
+            else if (parent?.type === "JSXAttribute" && jsx) code = `{${code}}`;
+            magicString.overwrite(start, end, code);
           }
           success({ name, data: result });
+          return false;
         }
       } else if (node.type === "TemplateLiteral") {
         const { expressions, quasis, start, end } = node as any;
@@ -73,6 +79,7 @@ const create: TransfromCreate = ({
             magicString.overwrite(start, end, result.code);
           }
           success({ name, data: result });
+          return false;
         }
       }
     },

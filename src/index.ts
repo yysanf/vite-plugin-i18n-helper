@@ -14,6 +14,8 @@ import {
   generatorResultHtml,
   createFileHash,
 } from "./utils";
+import { Parser } from "acorn";
+import acornJsx from "acorn-jsx";
 
 export const transformsPresets = [
   transformZH,
@@ -47,6 +49,7 @@ const pluginFactory: UnpluginFactory<Options> = (options) => {
   const i18nMap: Map<string, Set<string>> = new Map(); // 记录解析结果
   const filter = createFilter(options.includes, options.exclude);
   const dictData = options.dictJson ? syncReadJson(options.dictJson) : null;
+  const jsxParser = options.jsx ? Parser.extend(acornJsx()) : null;
   return {
     name: "vite-plugin-i18n-helper",
     transformInclude(id) {
@@ -54,7 +57,13 @@ const pluginFactory: UnpluginFactory<Options> = (options) => {
     },
     transform(code, id) {
       try {
-        let ast = this.parse(code);
+        let ast = jsxParser
+          ? jsxParser.parse(code, {
+              sourceType: "module",
+              ecmaVersion: "latest",
+              locations: true,
+            })
+          : this.parse(code);
         const magicString = new MagicString(code);
         const result: Map<string, any[]> = new Map();
         const compilerSuccess: CompilerSuccess<any> = ({ name, data }) => {
@@ -65,7 +74,8 @@ const pluginFactory: UnpluginFactory<Options> = (options) => {
         const transforms = loadTransforms(options.transforms || []);
         const pluginOption = {
           ...options,
-          skipCallExpression: options.skipCallExpression ?? /^console\.[a-zA-Z]+$/,
+          skipCallExpression:
+            options.skipCallExpression ?? /^console\.[a-zA-Z]+$/,
         };
         const visitorPlugin = transforms.map((p) =>
           p.create({
