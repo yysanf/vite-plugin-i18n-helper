@@ -3,7 +3,7 @@ module.exports = {
     [
       "@vue/cli-plugin-babel/preset",
       {
-        // exclude: ["transform-template-literals"],
+        exclude: ["transform-template-literals"],
       },
     ],
   ],

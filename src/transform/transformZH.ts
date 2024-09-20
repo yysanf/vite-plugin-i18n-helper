@@ -59,8 +59,10 @@ const create: TransfromCreate = ({
           const result = overwriteZH(value, [], options, dictData);
           if (result.code) {
             let code = result.code;
-            if (parent?.type === "Property") code = `[${code}]`;
-            else if (parent?.type === "JSXAttribute" && jsx) code = `{${code}}`;
+            if (parent?.type === "Property" && (parent as any).key === node) {
+              code = `[${code}]`;
+            } else if (parent?.type === "JSXAttribute" && jsx)
+              code = `{${code}}`;
             magicString.overwrite(start, end, code);
           }
           success({ name, data: result });

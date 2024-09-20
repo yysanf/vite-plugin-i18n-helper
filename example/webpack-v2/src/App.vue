@@ -174,7 +174,7 @@ export default {
     },
     jsxTest() {
       const b = {
-        a: 1,
+        a: '一二三',
         '一二三': '2a',
       }
       return <div>一二三</div>;

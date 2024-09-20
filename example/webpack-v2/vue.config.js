@@ -54,10 +54,6 @@ module.exports = {
         return options;
       })
       .end();
-    config.module
-      .rule("js")
-      .post()
-      .end();
   },
   configureWebpack: {
     // cache: {
