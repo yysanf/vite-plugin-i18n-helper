@@ -64,16 +64,18 @@
       <div>静态节点</div>
       <div>"一二三"</div>
     </div>
+    <!-- jsx -->
+    <TsxComp />
  </div>
 </template>
-<script>
+<script lang="tsx">
 export default {
   directives: {
     foo() {},
   },
 }
 </script>
-<script setup>
+<script lang="tsx" setup>
 import { useI18n } from "vue-i18n";
 const { locale } = useI18n();
 
@@ -86,13 +88,14 @@ const name3 = `${`一二三${name1}`}一二三${fn(name1)}`; // 复杂模板字�
 const name4 = "三" + "2" +  "一二三"; // 表达式不参与 只针对字符串和模板字符串
 const name5 = "i18n!:一二三"; // i18n!: 开头的内容不参与编译
 const name6 = "    一二三   ";  // 首尾空格不参与编译 可设置ignorePrefix和ignoreSuffix自定义规则
-const text = [name1, name2, name3, name4, name5, name6];
+const text = "";
 const foo = () => '66';
 const list = [1, 2, 3];
 function Comp(props, context){
   return context.slots?.default ? context.slots.default(props.name || '') : (props.content || "无内容")
 }
 
+const TsxComp = () => (<input v-module:value={text} placeholder="一二三"></input>)
 
 fn('一二三') // skipCallExpression
 console.log('一二三')

@@ -110,7 +110,7 @@ const name6 = `    ${i18nHelper("123",null,"一二三")}   `;
 
 
 ### 内置 transfrom
-- V3Template (需执行于 .vue 文件被编译 之后)
+- V3Template (**不适用vue3.5及以上版本** 并需执行于 .vue 文件被编译**之后**)
   - vue3 template 模板的中文节点经过vue3的模板优化被标记为静态节，包含中文的静态节点转为国际化代码后，V3Template会将这些再编译成响应式节点
 - V2Template (需执行于 .vue 文件被编译 之后)
   - vue2 包含中文的静态节点静态节点转为国际化代码后 V2Template会将这些再编译成响应式节点

@@ -3,6 +3,8 @@
     "module": "ESNext",
     "target": "es2017",
     "moduleResolution": "node",
+    "jsx": "preserve",
+    "jsxImportSource": "vue",
     "strict": true,
     "declaration": true,
     "noUnusedLocals": true,

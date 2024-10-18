@@ -8,11 +8,11 @@ import transformZH from "./transform/transformZH";
 import transformV3Template from "./transform/transformV3Template";
 import transformV2Template from "./transform/transformV2Template";
 import {
-  filterFile,
   walkAst,
   syncReadJson,
   generatorResultHtml,
   createFileHash,
+  parseUrlParams,
 } from "./utils";
 import { Parser } from "acorn";
 import acornJsx from "acorn-jsx";
@@ -45,11 +45,25 @@ function loadTransforms(transforms: Options["transforms"]) {
 }
 
 const pluginFactory: UnpluginFactory<Options> = (options) => {
+  // 匹配文件后缀
   let outDir = "";
   const i18nMap: Map<string, Set<string>> = new Map(); // 记录解析结果
   const filter = createFilter(options.includes, options.exclude);
   const dictData = options.dictJson ? syncReadJson(options.dictJson) : null;
   const jsxParser = options.jsx ? Parser.extend(acornJsx()) : null;
+  const filterFile = (id: string) => {
+    if (/\.(j|t)s(x?)$/.test(id)) return true;
+    if (/\.vue?/.test(id)) {
+      if (id.endsWith(".vue")) return true;
+      const query = parseUrlParams(id);
+      return (
+        query.vue != null &&
+        (query.type === "script" || query.type === "template")
+      );
+    }
+    return false;
+  };
+
   return {
     name: "vite-plugin-i18n-helper",
     transformInclude(id) {

@@ -77,19 +77,9 @@ export function overwriteZH(
   return { str, code };
 }
 
-// 匹配文件后缀
-export function filterFile(id: string) {
-  if (/\.(j|t)s(x?)$/.test(id)) return true;
-  if (/\.vue/.test(id)) {
-    if (id.endsWith(".vue")) return true;
-    const [_, rawQuery = ""] = id.split("?", 2);
-    const query = Object.fromEntries(new URLSearchParams(rawQuery));
-    return (
-      query.vue != null &&
-      (query.type === "script" || query.type === "template")
-    );
-  }
-  return false;
+export function parseUrlParams(url: string) {
+  const [_, rawQuery = ""] = url.split("?", 2);
+  return Object.fromEntries(new URLSearchParams(rawQuery));
 }
 
 export function syncReadJson(jsonPath: string) {
@@ -104,7 +94,7 @@ export function syncReadJson(jsonPath: string) {
 
 export function createFileHash(path: string) {
   try {
-    const data = fs.readFileSync(path);
+    const data = fs.readFileSync(path, 'utf-8');
     const hash = crypto.createHash("md5");
     hash.update(data);
     return hash.digest("hex");

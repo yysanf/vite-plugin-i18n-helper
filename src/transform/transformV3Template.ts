@@ -1,13 +1,12 @@
 import MagicString from "magic-string";
 import { TransfromCreate, TransfromInstance } from "../types";
-import { isCallExpression, isZH, walkAst } from "../utils";
+import { isCallExpression, isZH, parseUrlParams, walkAst } from "../utils";
 import { parseHTML } from "../utils/parse";
 import transformZH from "./transformZH";
 
 type HoistedFlag = Map<string, number>;
 type HoistedCode = Map<string, string>;
 type HoistedInitNode = Map<string, any>;
-
 
 const calleNameMap = {
   element: "createElementVNode",
@@ -124,7 +123,8 @@ const create: TransfromCreate = (params) => {
       }
     },
   };
-  if (/\.vue/.test(id)) {
+  // 只处理vue template 内容
+  if (/\.vue/.test(id) && parseUrlParams(id).type !== "script") {
     result.visitor.enter = function enter(node) {
       if (
         node.type === "CallExpression" &&
@@ -236,6 +236,7 @@ const create: TransfromCreate = (params) => {
                 : magicString.overwrite(args[1].start, args[1].end, "1");
             }
           } else if (/^_create([a-zA-Z]*(VNode|Block))$/.test(calleeName)) {
+            //处理节点创建 (如：_createElementBlock("div", null, _hoisted_3))
             const args = (node as any).arguments;
             if (args.length > 1) {
               let patchFlag =
