@@ -105,7 +105,7 @@ const name6 = `    ${i18nHelper("123",null,"一二三")}   `;
 | skipCallExpression   | `Array<RegExp>\|RegExp` | /^console\.[a-zA-Z]+$/ | 否 | 跳过调用表达式的入参处理(默认不处理console.*())  |
 | transforms   | `Array<string>` |  | 否 |  参见 内置 transfrom
 | raw   | `boolean` | - | 否 | 是否保留 dictJson 匹配前的 原始值 (是 将作为customI18n 第三个参数传入) |
-| output   | `boolean` | - | 否 | 是否输出字符串处理的结果  |
+| output   | `boolean\|string` | - | 否 | 输出字符串处理结果文件(仅支持html/json文件)  |
 | jsx   | `boolean` | - | 否 | 针对jsx的处理  |
 
 
@@ -191,4 +191,19 @@ module.exports = {
   * 绿色已完成替换   橙色 未完成
 - 构建时输出替换结果
   * 设置 output:true  会输出  _i18n_helper_result.html 文件
+  * 设置 output: xxx.json 会输出 xxx.json 文件
+    ```json
+    {
+      // 已处理的code及对应中文
+      "compeletedMap": {
+        "123": "一二三",
+        "123{0}": "一二三{0}",
+        "{0}123{1}": "{0}一二三{1}"
+      },
+      // 未处理的中文
+      "unCompletedWord": [
+        "文本测试"
+      ]
+    }
+    ```
   * 注意事项 webpack 开启了缓存(cache-loader等)时,命中缓存则无输出结果

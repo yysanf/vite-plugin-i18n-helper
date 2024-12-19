@@ -10,7 +10,7 @@ import transformV2Template from "./transform/transformV2Template";
 import {
   walkAst,
   syncReadJson,
-  generatorResultHtml,
+  generatorResultFile,
   createFileHash,
   parseUrlParams,
 } from "./utils";
@@ -26,7 +26,6 @@ export const transformsPresets = [
 export { createFileHash };
 
 const RESULT_ID = "virtual:i18n-helper/result";
-const OUTFILE = "_i18n_helper_result.html";
 
 function loadTransforms(transforms: Options["transforms"]) {
   const names = new Set([transformZH.name]);
@@ -126,8 +125,21 @@ const pluginFactory: UnpluginFactory<Options> = (options) => {
     writeBundle() {
       try {
         if (options.output && outDir) {
-          const file = resolve(outDir, OUTFILE);
-          fs.writeFileSync(file, generatorResultHtml(i18nMap, dictData, true));
+          let fileName = "_i18n_helper_result.html";
+          fileName =
+            typeof options.output === "string" ? options.output : fileName;
+          if (!/\.(html|json)$/.test(fileName)) fileName += ".html";
+          const fileType = fileName.split(".").pop() as "html" | "json";
+          const file = resolve(outDir, fileName);
+          fs.writeFileSync(
+            file,
+            generatorResultFile({
+              i18nMap,
+              dict: dictData,
+              build: true,
+              fileType,
+            })
+          );
           console.log("i18n-helper-result: " + file);
         }
       } catch (error) {
@@ -142,7 +154,10 @@ const pluginFactory: UnpluginFactory<Options> = (options) => {
         // 添加中间件展示结果页
         middlewares.use(async (req, res, next) => {
           if (req.url && req.url.includes(RESULT_ID)) {
-            const html = generatorResultHtml(i18nMap, dictData);
+            const html = generatorResultFile({
+              i18nMap,
+              dict: dictData,
+            });
             res.setHeader("Content-Type", "text/html");
             res.setHeader("Cache-Control", "no-cache");
             res.statusCode = 200;

@@ -94,7 +94,7 @@ export function syncReadJson(jsonPath: string) {
 
 export function createFileHash(path: string) {
   try {
-    const data = fs.readFileSync(path, 'utf-8');
+    const data = fs.readFileSync(path, "utf-8");
     const hash = crypto.createHash("md5");
     hash.update(data);
     return hash.digest("hex");
@@ -124,62 +124,37 @@ export function walkAst(ast: BaseNode, visitorPlugin: TransfromInstance[]) {
 }
 
 // 生成结果html
-export function generatorResultHtml(
-  i18nMap: Map<string, Set<string>>,
-  dict?: Record<string, string> | null,
-  build?: boolean
-) {
-  function generator(
-    title: string,
-    completed: string[],
-    unCompleted: string[]
+export function generatorResultFile(params: {
+  i18nMap: Map<string, Set<string>>;
+  dict?: Record<string, string> | null;
+  build?: boolean;
+  fileType?: "html" | "json";
+}) {
+  function generatorHTML(
+    contentList: { title: string; completed: string[]; unCompleted: string[] }[]
   ) {
     let html = "";
-    const hasCompleted = completed.length,
-      hasUnCompleted = unCompleted.length;
-    if (hasCompleted || hasUnCompleted) {
-      html += `<div class="container">`;
-      html += title ? `<h6>${title}</h6>` : "";
-      html += `<div>${completed
-        .map((v) => "<span class='completed'>" + v + "</span>")
-        .join("")}</div>`;
-      html += `<div>${unCompleted
-        .map((v) => "<span class='un-completed'>" + v + "</span>")
-        .join("")}</div>`;
-      if (hasUnCompleted) {
-        html += `<span class="un-completed" data-code>${JSON.stringify(
-          unCompleted
-        )}</span>`;
+    contentList.forEach(({ completed, unCompleted, title }) => {
+      const hasCompleted = completed.length,
+        hasUnCompleted = unCompleted.length;
+      if (hasCompleted || hasUnCompleted) {
+        html += `<div class="container">`;
+        html += title ? `<h6>${title}</h6>` : "";
+        html += `<div>${completed
+          .map((v) => "<span class='completed'>" + v + "</span>")
+          .join("")}</div>`;
+        html += `<div>${unCompleted
+          .map((v) => "<span class='un-completed'>" + v + "</span>")
+          .join("")}</div>`;
+        if (hasUnCompleted) {
+          html += `<span class="un-completed" data-code>${JSON.stringify(
+            unCompleted
+          )}</span>`;
+        }
+        html += "</div>";
       }
-      html += "</div>";
-    }
-    return html;
-  }
-  let content = "";
-  if (build) {
-    const completed: Set<string> = new Set(),
-      unCompleted: Set<string> = new Set();
-    i18nMap.forEach((val) => {
-      val.forEach((k) => {
-        !dict || dict[k] ? completed.add(k) : unCompleted.add(k);
-      });
     });
-    content += generator(
-      "全部",
-      Array.from(completed),
-      Array.from(unCompleted)
-    );
-  } else {
-    i18nMap.forEach((val, url) => {
-      const completed: string[] = [],
-        unCompleted: string[] = [];
-      val.forEach((k) => {
-        !dict || dict[k] ? completed.push(k) : unCompleted.push(k);
-      });
-      content += generator(url, completed, unCompleted);
-    });
-  }
-  return `<!DOCTYPE html>
+    return `<!DOCTYPE html>
   <html lang="en">
     <head>
       <meta charset="UTF-8" />
@@ -203,7 +178,7 @@ export function generatorResultHtml(
       <span class="completed">已处理</span>
       <span class="un-completed">未处理</span>
     </div>
-    ${content}
+    ${html}
     </body>
     <script>
       document.querySelector(".btns").addEventListener("click",toggle)
@@ -223,4 +198,46 @@ export function generatorResultHtml(
     </script>
   </html>
   `;
+  }
+  function record(data: Set<string>) {
+    const completed: Set<string> = new Set(),
+      unCompleted: Set<string> = new Set(),
+      completedMap: Record<string, string> = {};
+    data.forEach((k) => {
+      !dict || dict[k] ? completed.add(k) : unCompleted.add(k);
+      dict && dict[k] && (completedMap[dict[k]] = k);
+    });
+    return {
+      completedMap,
+      completed: Array.from(completed),
+      unCompleted: Array.from(unCompleted),
+    };
+  }
+
+  const { i18nMap, dict, build, fileType } = params;
+  const mapList: { title: string; value: Set<string> }[] = [];
+  i18nMap.forEach((val, url) => {
+    mapList.push({
+      title: url,
+      value: val,
+    });
+  });
+  const recordList = build
+    ? [
+        {
+          title: "全部",
+          ...record(
+            mapList.reduce((set, { value }) => {
+              return new Set([...set, ...value]);
+            }, new Set<string>())
+          ),
+        },
+      ]
+    : mapList.map(({ value, title }) => ({ title, ...record(value) }));
+  return fileType === "json"
+    ? JSON.stringify({
+        compeletedMap: recordList[0].completedMap,
+        unCompletedWord: recordList[0].unCompleted,
+      })
+    : generatorHTML(recordList);
 }
