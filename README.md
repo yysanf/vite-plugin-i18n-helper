@@ -33,7 +33,6 @@ export default () => {
         dictJson: path.resolve(__dirname, "./src/dict.json"),
         raw: true,
         output: false,
-        transforms: ["V3Template"], // vue3 模板编译静态提升优化导致部分内容非响应式 可以增加 V3Template 解决 
         skipCallExpression: /^fn$/ // 默认值 /^console\.[a-zA-Z]+$/ 不处理console.log 等 console 调用
       }),
     ],
