@@ -1,5 +1,5 @@
 import { TransfromCreate, Visitor } from "../types";
-import { isZH, overwriteZH } from "../utils";
+import { isZH, joinPureCommit, overwriteZH } from "../utils";
 
 const name = "transformZH";
 
@@ -63,7 +63,11 @@ const create: TransfromCreate = ({
               code = `[${code}]`;
             } else if (parent?.type === "JSXAttribute" && jsx)
               code = `{${code}}`;
-            magicString.overwrite(start, end, code);
+            magicString.overwrite(
+              start,
+              end,
+              joinPureCommit(code, parent ? parent.type : true)
+            );
           }
           success({ name, data: result });
           return false;
@@ -78,7 +82,11 @@ const create: TransfromCreate = ({
           );
           const result = overwriteZH(str, args, options, dictData);
           if (result.code) {
-            magicString.overwrite(start, end, result.code);
+            magicString.overwrite(
+              start,
+              end,
+              joinPureCommit(result.code, parent ? parent.type : true)
+            );
           }
           success({ name, data: result });
           return false;

@@ -39,6 +39,16 @@ function splitByReg(str: string, reg: RegExp) {
   return [str.replace(reg, ""), match ? match[0] : ""];
 }
 
+export function joinPureCommit(code: string, type: string | boolean) {
+  if (
+    type &&
+    (type === true || "AssignmentExpression,VariableDeclarator".includes(type))
+  ) {
+    return "/*#__PURE__*/" + code;
+  }
+  return code;
+}
+
 // 重写中文
 export function overwriteZH(
   value: string | string[],
@@ -63,16 +73,14 @@ export function overwriteZH(
   const key = dict ? dict[str] : str;
   let code = "";
   if (key) {
-    code =
-      "/*#__PURE__*/" +
-      genI18nCode(
-        customI18n,
-        key,
-        args,
-        prefix,
-        suffix,
-        options.raw ? str : void 0
-      );
+    code = genI18nCode(
+      customI18n,
+      key,
+      args,
+      prefix,
+      suffix,
+      options.raw ? str : void 0
+    );
   }
   return { str, code };
 }
