@@ -13,6 +13,7 @@ let plugins = [
     exclude: ["node_modules/*", "src/i18n.js"],
     customI18n: "i18nHelper",
     customI18nUrl: "/src/i18n",
+    toI18nCodeFunc: ['i18nAbbr', '_vm.i18nAbbr'],
     dictJson: path.resolve(__dirname, './src/dict.json'),
     ignoreMark: "i18n!:",
     transforms: ['V2Template'],

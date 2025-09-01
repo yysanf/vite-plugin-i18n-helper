@@ -24,3 +24,8 @@ export function i18nHelper(key, args, _str) {
   // const value = code ? i18n.t(code, args) : key;
   return i18n.t(key, args);
 }
+
+
+export function i18nAbbr(key, args, _str) {
+return 'abbr:' + i18nHelper(key, args, _str)
+}

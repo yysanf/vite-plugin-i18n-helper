@@ -19,6 +19,7 @@
       >
     </div>
     <div>{{ "一二三" }}</div>
+    <div :title="i18nAbbr('一二三')">{{ i18nAbbr("一二三") }}</div>
     <div>
       <span>一二三 {{ 1 }} {{ true }}</span>
     </div>
@@ -140,6 +141,7 @@ h6 {
 
 <script>
 import { name as test } from "./test";
+import {i18nAbbr} from "./i18n"
 export default {
   components: {},
   props: {},
@@ -165,6 +167,7 @@ export default {
     },
   },
   methods: {
+    i18nAbbr: i18nAbbr,
     setLocale(code) {
       this.$root.$i18n.locale = code;
       console.log(test);
