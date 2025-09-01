@@ -28,9 +28,7 @@ const create: TransfromCreate = ({
         }.bind(null, options.skipCallExpression)
     : null;
 
-  const toI18nCodeFunc = options.toI18nCodeFunc
-    ? new Set(options.toI18nCodeFunc)
-    : void 0;
+  const toI18nCodeFunc = options.toI18nCodeFunc;
 
   const matchCustomI18nArgsReg = new RegExp(
     "^" + options.customI18n + "\\((.+)\\)$"
@@ -73,7 +71,13 @@ const create: TransfromCreate = ({
             ) {
               const { start, end } = (parent as any).callee;
               const calleeExp = magicString.slice(start, end);
-              if (toI18nCodeFunc.has(calleeExp)) {
+              if (
+                toI18nCodeFunc.some((func) =>
+                  func instanceof RegExp
+                    ? func.test(calleeExp)
+                    : func === calleeExp
+                )
+              ) {
                 const match = result.code.match(matchCustomI18nArgsReg);
                 if (match) result.code = match[1];
               }

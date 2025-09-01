@@ -3,8 +3,8 @@ import MagicString from "magic-string";
 
 export declare interface Options {
   customI18n: string;
-  toI18nCodeFunc?: string[];
   customI18nUrl: string;
+  toI18nCodeFunc?: (string | RegExp)[];
   dictJson?: string;
   includes?: Array<string | RegExp> | string | RegExp;
   exclude?: Array<string | RegExp> | string | RegExp;

@@ -100,7 +100,7 @@ console(toI18nCode("123", null,"一二三")) // 将 一二三 中文入参转化
 | ---------   | --------- | --------- | --------- | --------- |
 | customI18n    | `string` | - | 是 | 自定义 i18n 方法 |
 | customI18nUrl | `string` | - | 是 | 自定义i8n 方法导入地址 |
-| toI18nCodeFunc | `string[]` | - | 否 | 需要将中文入参转化为国际化code入参 的函数 |
+| toI18nCodeFunc | `Array<string\|RegExp>` | - | 否 | 需要将中文入参转化为国际化code入参 的函数 |
 | dictJson      | `string[]` | - | 否 | 匹配字典 |
 | includes      | `Array<string\|RegExp>\|string\|RegExp`  |  -  | 否|  匹配文件规则 |
 | exclude       | `Array<string\|RegExp>\|string\|RegExp`  |  -  | 否 | 忽略文件规则 |
