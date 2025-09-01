@@ -31,6 +31,7 @@ export default () => {
         customI18n: "i18nHelper",
         customI18nUrl: "/src/i18n",
         dictJson: path.resolve(__dirname, "./src/dict.json"),
+        toI18nCodeFunc: ['toI18nCode'], // 需要将中文入参转化为国际化code入参 的函数
         raw: true,
         output: false,
         skipCallExpression: /^fn$/ // 默认值 /^console\.[a-zA-Z]+$/ 不处理console.log 等 console 调用
@@ -42,6 +43,7 @@ export default () => {
 ## 示例
 ```ts
 // 原始代码
+import {toI18nCode} from "/src/i18n.js"
 const fn = (val) => "(" + val + ")";
 const name1 = "一二三"; // 普通字符串
 const name2 = `一二三${name1}`; // 模板字符串
@@ -51,12 +53,13 @@ const name5 = "i18n!:一二三"; // i18n!: 开头的内容不参与编译
 const name6 = "    一二三   ";  // 首尾空格不参与编译 可设置ignorePrefix和ignoreSuffix自定义规则
 fn('一二三'); // skipCallExpression 配置 跳过 fn 的入参处理
 console.log('一二三')
+console(toI18nCode('一二三')) // toI18nCodeFunc配置了 toI18nCode
 ```
 - 无 dictJson 参数时 会 转义所有包含中文的字符
 
 ```ts
 // 处理后结果
-import {i18nHelper} from "/src/i18n.js"
+import {i18nHelper, toI18nCode} from "/src/i18n.js"
 const fn = (val) => "(" + val + ")";
 const name1 = i18nHelper("一二三");
 const name2 = i18nHelper("一二三{0}",[name1]);
@@ -66,6 +69,7 @@ const name5 = "一二三";
 const name6 = `    ${i18nHelper("一二三")}   `;
 fn('一二三'); // skipCallExpression 配置 跳过 fn 的入参处理
 console.log(i18nHelper("一二三"));
+console(toI18nCode('一二三')) // 将 一二三 中文入参转化为国际化code入参
 ```
 
 - 有 dictJson 参数时 会 转义 dictJson 中匹配到的字符
@@ -87,6 +91,7 @@ const name3 = i18nHelper("{0}123{1}",[i18nHelper("123{0}",[name1],"一二三{0}"
 const name4 = "三" + "2" +  i18nHelper("123",null,"一二三");
 const name5 = "一二三";
 const name6 = `    ${i18nHelper("123",null,"一二三")}   `; 
+console(toI18nCode("123", null,"一二三")) // 将 一二三 中文入参转化为国际化code入参
 ```
 
 ### 参数说明
@@ -95,6 +100,7 @@ const name6 = `    ${i18nHelper("123",null,"一二三")}   `;
 | ---------   | --------- | --------- | --------- | --------- |
 | customI18n    | `string` | - | 是 | 自定义 i18n 方法 |
 | customI18nUrl | `string` | - | 是 | 自定义i8n 方法导入地址 |
+| toI18nCodeFunc | `string[]` | - | 否 | 需要将中文入参转化为国际化code入参 的函数 |
 | dictJson      | `string[]` | - | 否 | 匹配字典 |
 | includes      | `Array<string\|RegExp>\|string\|RegExp`  |  -  | 否|  匹配文件规则 |
 | exclude       | `Array<string\|RegExp>\|string\|RegExp`  |  -  | 否 | 忽略文件规则 |
@@ -109,7 +115,7 @@ const name6 = `    ${i18nHelper("123",null,"一二三")}   `;
 
 
 ### 内置 transfrom
-- V3Template (**不适用vue3.5及以上版本** 并需执行于 .vue 文件被编译**之后**)
+- ~~V3Template (**不适用vue3.5及以上版本** 并需执行于 .vue 文件被编译**之后**，已弃用)~~
   - vue3 template 模板的中文节点经过vue3的模板优化被标记为静态节，包含中文的静态节点转为国际化代码后，V3Template会将这些再编译成响应式节点
 - V2Template (需执行于 .vue 文件被编译 之后)
   - vue2 包含中文的静态节点静态节点转为国际化代码后 V2Template会将这些再编译成响应式节点

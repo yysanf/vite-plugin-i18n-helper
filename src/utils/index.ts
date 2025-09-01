@@ -61,6 +61,7 @@ export function overwriteZH(
   const customI18n = options.customI18n;
   let str, prefix, suffix;
   if (Array.isArray(value)) {
+    // 模板字符串，例如 ['第', '页'] -> `第{0}页`
     const arr = value.slice(),
       len = value.length - 1;
     [arr[0], prefix] = splitByReg(arr[0], ignorePrefix);

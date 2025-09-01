@@ -28,6 +28,14 @@ const create: TransfromCreate = ({
         }.bind(null, options.skipCallExpression)
     : null;
 
+  const toI18nCodeFunc = options.toI18nCodeFunc
+    ? new Set(options.toI18nCodeFunc)
+    : void 0;
+
+  const matchCustomI18nArgsReg = new RegExp(
+    "^" + options.customI18n + "\\((.+)\\)$"
+  );
+
   const jsx = options.jsx;
 
   const imports = new Set();
@@ -58,6 +66,18 @@ const create: TransfromCreate = ({
         ) {
           const result = overwriteZH(value, [], options, dictData);
           if (result.code) {
+            if (
+              toI18nCodeFunc &&
+              parent.type === "CallExpression" &&
+              (parent as any).arguments.length == 1
+            ) {
+              const { start, end } = (parent as any).callee;
+              const calleeExp = magicString.slice(start, end);
+              if (toI18nCodeFunc.has(calleeExp)) {
+                const match = result.code.match(matchCustomI18nArgsReg);
+                if (match) result.code = match[1];
+              }
+            }
             let code = result.code;
             if (parent?.type === "Property" && (parent as any).key === node) {
               code = `[${code}]`;
